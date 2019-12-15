@@ -7,11 +7,12 @@ const { trimHTTPOrHTTPS } = require('./utils')
 const {
   YOYO_EMAIL,
   YOYO_DB_TABLE,
+  YOYO_EMAIL_CONSENT_TABLE,
   SITE_OWNER_EMAIL,
   SENDGRID_API_KEY
 } = Config
 
-AWS.config.update({ region: 'us-east-1' })
+AWS.config.update({ region: 'eu-west-1' })
 sgMail.setApiKey(SENDGRID_API_KEY)
 
 const dynamoDb = new AWS.DynamoDB.DocumentClient({ convertEmptyValues: true })
@@ -196,9 +197,60 @@ const query = (event, ctx, cb) => {
   })
 }
 
+async function consent (event) {
+    const { email } = JSON.parse(event.body)
+    const params = {
+	TableName: YOYO_EMAIL_CONSENT_TABLE,
+	Item: {
+	    email,
+	}
+    }
+
+    return dynamoDb.put(params).promise()
+	.then(resp => ({ statusCode: 200,
+			 headers: {
+			     'Content-Type': 'application/json',
+			     'Access-Control-Allow-Origin': '*'
+			 },
+			 body: 'Success!' }))
+	.catch(err => ({ statusCode: 200,
+			 headers: {
+			     'Content-Type': 'application/json',
+			     'Access-Control-Allow-Origin': '*'
+			 },
+			 body: JSON.stringify( {message: 'Failure!', reason: err}) }));
+}
+
+async function revoke (event) {
+    const { email } = JSON.parse(event.body)
+    const params = {
+	TableName: YOYO_EMAIL_CONSENT_TABLE,
+	Key: {
+	    email,
+	}
+    }
+
+    return dynamoDb.delete(params).promise()
+	.then(resp => ({ statusCode: 200,
+			 headers: {
+			     'Content-Type': 'application/json',
+			     'Access-Control-Allow-Origin': '*'
+			 },
+			 body: 'Success!' }))
+	.catch(err => ({ statusCode: 200,
+			 headers: {
+			     'Content-Type': 'application/json',
+			     'Access-Control-Allow-Origin': '*'
+			 },
+			 body: JSON.stringify( {message: 'Failure!', reason: err}) }));
+
+}
+
 module.exports = {
   create,
   get,
   update,
   query,
+  consent,
+  revoke
 }

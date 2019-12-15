@@ -4,10 +4,11 @@ provider:
   name: aws
   runtime: nodejs8.10
   stage: ${opt:stage}
-  region: us-east-1
+  region: eu-west-1
   environment:
     YOYO_EMAIL: ${opt:YOYO_EMAIL}
     YOYO_DB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    YOYO_EMAIL_CONSENT_TABLE: ${self:service}-consent-${opt:stage, self:provider.stage}
     SITE_OWNER_EMAIL: ${opt:SITE_OWNER_EMAIL}
     SENDGRID_API_KEY: ${opt:SENDGRID_API_KEY}
 
@@ -20,7 +21,9 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.YOYO_DB_TABLE}"
+      Resource:
+        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.YOYO_DB_TABLE}"
+        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.YOYO_EMAIL_CONSENT_TABLE}"
 
 package:
   include:
@@ -57,11 +60,26 @@ functions:
           method: put
           cors: true
 
+  consent:
+    handler: handler.consent
+    events:
+      - http:
+          path: /consent
+          method: post
+          cors: true
+
+  revoke:
+    handler: handler.revoke
+    events:
+      - http:
+          path: /consent
+          method: delete
+          cors: true
+
 resources:
   Resources:
     TodosDynamoDbTable:
       Type: 'AWS::DynamoDB::Table'
-      DeletionPolicy: Retain
       Properties:
         AttributeDefinitions:
           -
@@ -75,3 +93,14 @@ resources:
           ReadCapacityUnits: 5
           WriteCapacityUnits: 5
         TableName: ${self:provider.environment.YOYO_DB_TABLE}
+    ConsentDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:provider.environment.YOYO_EMAIL_CONSENT_TABLE}
