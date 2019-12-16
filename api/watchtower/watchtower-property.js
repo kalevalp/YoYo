@@ -1,23 +1,27 @@
-/* ********************************************************************************
+/* **************************************************************************
  *
  * Property:
- *   If a quote was tweeted, then that quote was previously scraped by the scraper.
- *   (rationale - in case someone injected an unwanted tweet to the database.)
+ *   Emails can only be sent after consent was given, and as long as
+ *   consent had not been revoked.
  *
- * ******************************************************************************** */
+ * ************************************************************************** */
 const properties = [
     {
         name: 'genprop',
-        quantifiedVariables: ['quoteId'],
-        projections: [['quoteId']],
+        quantifiedVariables: ['email'],
+        projections: [['email']],
         stateMachine: {
-            'PUBLISHED_TWEET': {
-                params: [ 'quoteId' ],
-                'INITIAL' : { to: 'FAILURE' },
+            'GRANTED_CONSENT': {
+                params: [ 'email' ],
+                'INITIAL' : { to: 'consented' },
             },
-	    'SCRAPED_QUOTE': {
-		params: [ 'quoteId' ],
-		'INITIAL' : { to: 'scraped' },
+	    'SENT_EMAIL': {
+		params: [ 'email' ],
+		'INITIAL' : { to: 'FAILURE' },
+	    },
+	    'REVOKED_CONSENT': {
+		params: [ 'email' ],
+		'consented' : {to: 'INITIAL'},
 	    },
         }
     },
