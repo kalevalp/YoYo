@@ -1,0 +1,21 @@
+# Create:
+curl -X POST https://<API Gateway>.execute-api.eu-west-1.amazonaws.com/dev/comments --data '{"email": "foo@bar.com", "uri": "https://www.bar.com/stuffy/stuff", "text": "lorem ipsum"}'
+# >>> {"email":"foo@bar.com","uri":"www.bar.com/stuffy/stuff","text":"lorem ipsum","id":"6a06ef80-1fe6-11ea-8cfe-b1757a040424","mod":false,"updatedAt":"2019-12-16T09:28:27.000Z"}
+
+# get
+curl -X GET 'https://<API Gateway>.execute-api.eu-west-1.amazonaws.com/dev/comments/6a06ef80-1fe6-11ea-8cfe-b1757a040424'
+# >>> {"uri":"www.bar.com/stuffy/stuff","text":"lorem ipsum","mod":false,"id":"6a06ef80-1fe6-11ea-8cfe-b1757a040424","email":"foo@bar.com","updatedAt":"2019-12-16T09:28:27.000Z"}
+
+# query
+curl  'https://<API Gateway>.execute-api.eu-west-1.amazonaws.com/dev/comments?uri=www.bar.com/stuffy/stuff'
+# >>> [{"uri":"www.bar.com/stuffy/stuff","text":"lorem ipsum","mod":false,"id":"6a06ef80-1fe6-11ea-8cfe-b1757a040424","email":"foo@bar.com","updatedAt":"2019-12-16T09:28:27.000Z"}]
+
+# update
+curl -X PUT https://<API Gateway>.execute-api.eu-west-1.amazonaws.com/dev/comments/6a06ef80-1fe6-11ea-8cfe-b1757a040424 --data '{"email": "foo@bar.com", "uri": "https://www.bar.com/stuffy/stuff", "text": "loremzzz ipsumzzz"}'
+# >>> {"uri":"www.bar.com/stuffy/stuff","text":"loremzzz ipsumzzz","mod":false,"email":"foo@bar.com","id":"6a06ef80-1fe6-11ea-8cfe-b1757a040424","updatedAt":"2019-12-16T09:38:33.170Z"}
+
+# consent
+curl -X POST https://<API Gateway>.execute-api.eu-west-1.amazonaws.com/dev/consent --data '{"email": "foo@bar.com"}'
+
+# revoke
+curl -X DELETE https://<API Gateway>.execute-api.eu-west-1.amazonaws.com/dev/consent --data '{"email": "foo@bar.com"}'
