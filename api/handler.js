@@ -197,7 +197,7 @@ const query = (event, ctx, cb) => {
   })
 }
 
-async function consent (event) {
+const consent = (event, ctx, cb) => {
     const { email } = JSON.parse(event.body)
     const params = {
 	TableName: YOYO_EMAIL_CONSENT_TABLE,
@@ -206,22 +206,16 @@ async function consent (event) {
 	}
     }
 
-    return dynamoDb.put(params).promise()
-	.then(resp => ({ statusCode: 200,
-			 headers: {
-			     'Content-Type': 'application/json',
-			     'Access-Control-Allow-Origin': '*'
-			 },
-			 body: 'Success!' }))
-	.catch(err => ({ statusCode: 200,
-			 headers: {
-			     'Content-Type': 'application/json',
-			     'Access-Control-Allow-Origin': '*'
-			 },
-			 body: JSON.stringify( {message: 'Failure!', reason: err}) }));
+    return dynamoDb.put(params, (error, data) => {
+	if (error) {
+	    cb(error)
+	} else {
+	    response(error, { message: 'Success!' }, cb);
+	};
+    });
 }
 
-async function revoke (event) {
+const revoke = (event, ctx, cb) => {
     const { email } = JSON.parse(event.body)
     const params = {
 	TableName: YOYO_EMAIL_CONSENT_TABLE,
@@ -230,20 +224,13 @@ async function revoke (event) {
 	}
     }
 
-    return dynamoDb.delete(params).promise()
-	.then(resp => ({ statusCode: 200,
-			 headers: {
-			     'Content-Type': 'application/json',
-			     'Access-Control-Allow-Origin': '*'
-			 },
-			 body: 'Success!' }))
-	.catch(err => ({ statusCode: 200,
-			 headers: {
-			     'Content-Type': 'application/json',
-			     'Access-Control-Allow-Origin': '*'
-			 },
-			 body: JSON.stringify( {message: 'Failure!', reason: err}) }));
-
+    return dynamoDb.delete(params, (error, data) => {
+	if (error) {
+	    cb(error)
+	} else {
+	    response(error, { message: 'Success!' }, cb);
+	};
+    });
 }
 
 module.exports = {
